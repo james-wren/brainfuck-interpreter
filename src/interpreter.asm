@@ -1,14 +1,43 @@
 section .data
     code db "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.", 0
+    ; just some leftover testing data
 
 section .bss
     tape resb 30000
+    code_buf resb 65536
 
 section .text
     global _start
 
 _start:
-    mov rsi, code
+    mov rax, [rsp]
+    cmp rax, 2
+    jl exit
+
+    mov rdi, [rsp + 16]
+
+    ; Opens file
+    mov rax, 2
+    mov rsi, 0
+    syscall
+
+    cmp rax, 0
+    js exit
+    mov r12, rax
+
+    ; Read file into buffer
+    mov rax, 0
+    mov rdi, r12
+    mov rsi, code_buf
+    mov rdx, 65536
+    syscall
+
+    ; Close file
+    mov rax, 3
+    mov rdi, r12
+    syscall
+
+    mov rsi, code_buf
     mov rbx, tape
 
 interpret_loop:
